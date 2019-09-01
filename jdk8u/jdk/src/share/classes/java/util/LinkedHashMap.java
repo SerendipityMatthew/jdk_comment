@@ -189,6 +189,7 @@ public class LinkedHashMap<K,V>
     /**
      * HashMap.Node subclass for normal LinkedHashMap entries.
      */
+    // 双端链表的的数据结构, before 指向前一个元素, after 指向下一个元素
     static class Entry<K,V> extends HashMap.Node<K,V> {
         Entry<K,V> before, after;
         Entry(int hash, K key, V value, Node<K,V> next) {
@@ -201,11 +202,13 @@ public class LinkedHashMap<K,V>
     /**
      * The head (eldest) of the doubly linked list.
      */
+    // 双端链表的第一个元素, 也就是头元素
     transient LinkedHashMap.Entry<K,V> head;
 
     /**
      * The tail (youngest) of the doubly linked list.
      */
+    // 双端链表的最后一个元素, 也就是微元素
     transient LinkedHashMap.Entry<K,V> tail;
 
     /**
@@ -214,6 +217,8 @@ public class LinkedHashMap<K,V>
      *
      * @serial
      */
+
+    // 为 false 的是后, 保持双端链表的插入顺序
     final boolean accessOrder;
 
     // internal utilities
@@ -222,10 +227,13 @@ public class LinkedHashMap<K,V>
     private void linkNodeLast(LinkedHashMap.Entry<K,V> p) {
         LinkedHashMap.Entry<K,V> last = tail;
         tail = p;
+        // last 为双端链表的最后一个元素指向为空, 表明这个链表里没有任何元素
         if (last == null)
             head = p;
         else {
+            // 新追加的元素的 before 字段指向 前面的那个元素 last
             p.before = last;
+            // 前面的元素的 after 字段指向新追加的元素 p.  这样就完成了链接
             last.after = p;
         }
     }

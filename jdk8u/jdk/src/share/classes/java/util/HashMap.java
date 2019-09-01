@@ -276,6 +276,11 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * Basic hash bin node, used for most entries.  (See below for
      * TreeNode subclass, and in LinkedHashMap for its Entry subclass.)
      */
+
+    // 无论是 LinkedHashMap 还是 HashMap. 这个是存放元素本身的数据结构. 对键值对类型的数据结构的抽象
+    // hash 表示方进入的键值对的 key 的 hash 值. 也是这个类的 key 字段
+    // key 字段就是键值对的 键. value 字段是键值对的 值 next 指向下一个元素.
+    // 因为在 链表小于 8 的时候,采用链表的方式
     static class Node<K,V> implements Map.Entry<K,V> {
         final int hash;
         final K key;
@@ -625,12 +630,19 @@ public class HashMap<K,V> extends AbstractMap<K,V>
     final V putVal(int hash, K key, V value, boolean onlyIfAbsent,
                    boolean evict) {
         Node<K,V>[] tab; Node<K,V> p; int n, i;
+        // 将先前的 table 里的内容赋值给tab临时变量,
+        // 如果 tab 为 null 表示是第一次 put 值进去
         if ((tab = table) == null || (n = tab.length) == 0)
             n = (tab = resize()).length;
+        // 计算是否有哈希碰撞的时候, 如果为 null, 表示没有放置元素, 没有发生碰撞的情况,
+        // 元素 p 是数组的元素的, 也就是链表的第一个元素, 如果不是链表的话他是一个红黑树
         if ((p = tab[i = (n - 1) & hash]) == null)
             tab[i] = newNode(hash, key, value, null);
         else {
+            // 发生碰撞的现象了
             Node<K,V> e; K k;
+            // 要存放的 key 和 value 刚好存在,替换掉之前的key 所对应的的 value 值.
+            // 链表的第一个元素刚好和 put 进去的元素是同一个键.
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
                 e = p;
@@ -816,13 +828,15 @@ public class HashMap<K,V> extends AbstractMap<K,V>
         if ((tab = table) != null && (n = tab.length) > 0 &&
             (p = tab[index = (n - 1) & hash]) != null) {
             Node<K,V> node = null, e; K k; V v;
+            // 开始查找元素是否存在, 查找 hash 和 key 所对应的的元素
             if (p.hash == hash &&
                 ((k = p.key) == key || (key != null && key.equals(k))))
-                node = p;
-            else if ((e = p.next) != null) {
-                if (p instanceof TreeNode)
+                node = p; //数组里下标所对应的值里对的第一个元素. 链表或者红黑树的第一个元素
+            else if ((e = p.next) != null) { // table[i]里不止一个元素, 需要遍历寻找
+                if (p instanceof TreeNode) // 是一个红黑树
                     node = ((TreeNode<K,V>)p).getTreeNode(hash, key);
                 else {
+                    // 查找是否存在链表中
                     do {
                         if (e.hash == hash &&
                             ((k = e.key) == key ||
@@ -834,6 +848,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
                     } while ((e = e.next) != null);
                 }
             }
+            // 查找到了元素, 然后删除该元素
             if (node != null && (!matchValue || (v = node.value) == value ||
                                  (value != null && value.equals(v)))) {
                 if (node instanceof TreeNode)
@@ -1746,6 +1761,8 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      */
 
     // Create a regular (non-tree) node
+
+    // 对于 LinkedHashMap 会重写这个方法. 感觉有点模板方法设计模式
     Node<K,V> newNode(int hash, K key, V value, Node<K,V> next) {
         return new Node<>(hash, key, value, next);
     }
@@ -1804,6 +1821,7 @@ public class HashMap<K,V> extends AbstractMap<K,V>
      * extends Node) so can be used as extension of either regular or
      * linked node.
      */
+    // 红黑树里的对键值对元素的抽象.
     static final class TreeNode<K,V> extends LinkedHashMap.Entry<K,V> {
         TreeNode<K,V> parent;  // red-black tree links
         TreeNode<K,V> left;
